@@ -14,6 +14,9 @@ Changelog
 
 - check for "collective.easyform.DownloadSavedInput" permission, before including the saved data in serializer.
   [MrTango]
+- Add filesize upload limit. [ThibautBorn]
+
+- update Dutch translations [ThibautBorn]
 
 
 4.1.4 (2023-07-27)
