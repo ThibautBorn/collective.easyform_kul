@@ -59,10 +59,8 @@ class SerializeToJson(DXContentToJson):
                 serializeable = dict()
                 storage[name] = serializeable
                 for id, data in action.getSavedFormInputItems():
-                    column_names = list(data.keys())
-                    column_names.remove("id")
-                    column_names.sort()
-                    if column_names != included_columns_in_savedata:
+                    relevant_columns = columns_to_serialize(action, data)
+                    if not action.showFields and relevant_columns != included_columns_in_savedata:
                         logger.warning(
                             "Skipped Saveddata row because of mismatch witch current fields in %s",
                             self.context.absolute_url(),
@@ -81,6 +79,19 @@ class SerializeToJson(DXContentToJson):
                         )
         if storage:
             result["savedDataStorage"] = storage
+
+def columns_to_serialize(action, data):
+    if not action.ExtraData:
+        action.ExtraData = []
+    if action.showFields:
+        column_names = action.showFields #+ action.ExtraData
+    else:
+        column_names = list(data.keys())
+        column_names.remove("id")
+        for extra in action.ExtraData:
+            column_names.remove(extra)
+    column_names.sort()
+    return column_names
 
 
 def convertBeforeSerialize(value):
@@ -118,24 +129,30 @@ class DeserializeFromJson(DXContentFromJson):
             actions = getFieldsInOrder(get_actions(self.context))
             schema = get_fields(self.context)
 
-            AllFieldsinOrder = schema.namesAndDescriptions()
-            included_columns_in_savedata = []
-            for column, field in AllFieldsinOrder:
-                # Labels must be excluded
-                # because their column are not included in serialized data.
-                if not ILabel.providedBy(field):
-                    included_columns_in_savedata.append(column)
-
             for name, action in actions:
                 if ISaveData.providedBy(action) and name in storage:
+                    relevant_columns = columns_to_deserialize(action, schema)
                     savedData = storage[name]
                     for key, value in savedData.items():
-                        for name in included_columns_in_savedata:  # schema.names():
+                        for name in relevant_columns:
                             value[name] = convertAfterDeserialize(
                                 schema[name], value[name]
                             )
                         action.setDataRow(int(key), value)
 
+
+def columns_to_deserialize(action, schema):
+    AllFieldsinOrder = schema.namesAndDescriptions()
+    relevant_columns = []
+    if action.showFields:
+        relevant_columns = action.showFields
+    else:
+        for column, field in AllFieldsinOrder:
+            # Labels must be excluded
+            # because their column are not included in serialized data.
+            if not ILabel.providedBy(field):
+                relevant_columns.append(column)
+    return relevant_columns
 
 def convertAfterDeserialize(field, value):
     if ISet.providedBy(field):
