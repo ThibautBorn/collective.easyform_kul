@@ -38,7 +38,6 @@ def append_body_pt(field, name, value):
 Type = namedtuple("Type", ["name", "handler"])
 Property = namedtuple("Property", ["name", "handler"])
 
-
 TYPES_MAPPING = {
     "FormMailerAdapter": Type("collective.easyform.actions.Mailer", append_field),
     "FormSaveDataAdapter": Type("collective.easyform.actions.SaveData", append_field),
@@ -116,6 +115,14 @@ def actions_model(ploneformgen):
                 pfgpath,
             )
             continue
+
+        # remove outdated/removed fields from showfields list
+        if type_.name == 'collective.easyform.actions.SaveData':
+            filteredFields = []
+            available_fields = [field.getName() for field in ploneformgen.fgFields()]
+            filteredFields = [fieldname for fieldname in properties.get('showFields') if fieldname in available_fields]
+            properties['showFields'] = filteredFields
+
 
         field = type_.handler(schema, type_.name, actionname, properties)
 
