@@ -142,10 +142,13 @@ class DeserializeFromJson(DXContentFromJson):
                     relevant_columns = columns_to_deserialize(action, schema)
                     savedData = storage[name]
                     for key, value in savedData.items():
-                        for name in relevant_columns:
-                            value[name] = convertAfterDeserialize(
-                                schema[name], value[name]
-                            )
+                        for name in schema.names():
+                            if name in relevant_columns:
+                                value[name] = convertAfterDeserialize(
+                                    schema[name], value[name]
+                                )
+                            elif name in value:
+                                del value[name]
                         action.setDataRow(int(key), value)
 
 

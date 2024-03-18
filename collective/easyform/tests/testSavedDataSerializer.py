@@ -17,9 +17,9 @@ class ISpecialConverters(model.Schema, Interface):
     date = schema.Date()
     set = schema.Set()
     rich = RichText()
-    
 
-class SavedDataSerializerTestCase(BaseSaveData):  
+
+class SavedDataSerializerTestCase(BaseSaveData):
 
     def testDefaultFormDataSerialization(self):
         self.request = self.layer["request"]
@@ -152,7 +152,64 @@ class SavedDataDeserializerTestCase(BaseSaveData):
         self.assertIn("rich", data)
         self.assertEqual(u"<div><b>testing is fùn</b> says Michaël</div>", data['rich'].raw)
 
-    
+    def testShowFieldsFormDataDeserialization(self):
+        BODY = ( '{"actions_model": "<model '
+                'xmlns:i18n=\\"http://xml.zope.org/namespaces/i18n\\" '
+                'xmlns:marshal=\\"http://namespaces.plone.org/supermodel/marshal\\" '
+                'xmlns:form=\\"http://namespaces.plone.org/supermodel/form\\" '
+                'xmlns:security=\\"http://namespaces.plone.org/supermodel/security\\" '
+                'xmlns:users=\\"http://namespaces.plone.org/supermodel/users\\" '
+                'xmlns:lingua=\\"http://namespaces.plone.org/supermodel/lingua\\" '
+                'xmlns:easyform=\\"http://namespaces.plone.org/supermodel/easyform\\" '
+                'xmlns=\\"http://namespaces.plone.org/supermodel/schema\\" '
+                'i18n:domain=\\"collective.easyform\\">\\n  <schema>\\n   <field '
+                'name=\\"saver\\" type=\\"collective.easyform.actions.SaveData\\">\\n      '
+                '<showFields>\\n        <element>topic</element>\\n        <element>comments</element>\\n      </showFields>\\n      '
+                '<title>Saver</title>\\n    </field>\\n  </schema>\\n</model>",'
+                '"savedDataStorage": '
+                '{"saver": {"1658237759974": {"topic": "test subject", "replyto": '
+                '"test@test.org", "comments": "test comments", "id": 1658237759974}}}}')
+
+        self.deserialize(body=BODY, context=self.ff1)
+        saver = get_actions(self.ff1)["saver"]
+        data = saver.getSavedFormInput()[0]
+        self.assertIn("topic", data)
+        self.assertEqual("test subject", data['topic'])
+        self.assertNotIn("replyto", data)
+        self.assertIn("comments", data)
+        self.assertEqual("test comments", data['comments'])
+
+    def testExtraDataFormDataDeserialization(self):
+        BODY = ( '{"actions_model": "<model '
+                'xmlns:i18n=\\"http://xml.zope.org/namespaces/i18n\\" '
+                'xmlns:marshal=\\"http://namespaces.plone.org/supermodel/marshal\\" '
+                'xmlns:form=\\"http://namespaces.plone.org/supermodel/form\\" '
+                'xmlns:security=\\"http://namespaces.plone.org/supermodel/security\\" '
+                'xmlns:users=\\"http://namespaces.plone.org/supermodel/users\\" '
+                'xmlns:lingua=\\"http://namespaces.plone.org/supermodel/lingua\\" '
+                'xmlns:easyform=\\"http://namespaces.plone.org/supermodel/easyform\\" '
+                'xmlns=\\"http://namespaces.plone.org/supermodel/schema\\" '
+                'i18n:domain=\\"collective.easyform\\">\\n  <schema>\\n   <field '
+                'name=\\"saver\\" type=\\"collective.easyform.actions.SaveData\\">\\n      '
+                '<title>Saver</title>\\n    </field>\\n  </schema>\\n</model>",'
+                '"savedDataStorage": '
+                '{"saver": {"1658237759974": {"topic": "test subject", "replyto": '
+                '"test@test.org", "comments": "test comments", "id": 1658237759974,'
+                '"HTTP_X_FORWARDED_FOR": "", "dt": "2023/11/10 09:54:5.924947 GMT+1"}}}}')
+
+        self.deserialize(body=BODY, context=self.ff1)
+        saver = get_actions(self.ff1)["saver"]
+        data = saver.getSavedFormInput()[0]
+        self.assertIn("topic", data)
+        self.assertEqual("test subject", data['topic'])
+        self.assertIn("replyto", data)
+        self.assertEqual("test@test.org", data['replyto'])
+        self.assertIn("comments", data)
+        self.assertEqual("test comments", data['comments'])
+        self.assertIn("dt", data)
+        self.assertEqual("2023/11/10 09:54:5.924947 GMT+1", data['dt'])
+        self.assertIn("HTTP_X_FORWARDED_FOR", data)
+
     def deserialize(self, body="{}", validate_all=False, context=None, create=False):
         self.request = self.layer["request"]
         self.request["BODY"] = body
