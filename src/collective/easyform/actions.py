@@ -552,6 +552,8 @@ class Mailer(Action):
         mailtext = self.get_mail_text(fields, request, context)
         host = api.portal.get_tool(name="MailHost")
         host.send(mailtext)
+        to, from_addr, reply_addr = self.get_addresses(fields, request, context)
+        logger.info(f"Mail sent from form {context.absolute_url()} at time {DateTime()} to {to} from address {from_addr} with replyto {reply_addr}")
 
 
 @implementer(ICustomScript)
