@@ -3,6 +3,7 @@
     xmlns:zcml="http://namespaces.zope.org/zcml"
     xmlns:genericsetup="http://namespaces.zope.org/genericsetup"
     xmlns:i18n="http://namespaces.zope.org/i18n"
+    xmlns:browser="http://namespaces.zope.org/browser"
     >
 
   <include package="plone.app.dexterity" />
@@ -67,5 +68,12 @@
     zcml:condition="installed plone.restapi"
 	  factory="collective.easyform.serializer.DeserializeFromJson" 
 	  />
+
+  <browser:page
+    name="sharing"
+    for="plone.dexterity.interfaces.IDexterityContent"
+    class=".sharing.EFSharingView"
+    permission="zope2.View"
+  />
 
 </configure>

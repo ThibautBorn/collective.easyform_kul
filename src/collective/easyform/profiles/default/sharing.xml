@@ -1,0 +1,9 @@
+<sharing xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+         i18n:domain="collective.easyform">
+  <role
+      id="Data manager"
+      title="Access Easyform data"
+      permission="collective.easyform: Download Saved Input"
+      i18n:attributes="title"
+      />
+</sharing>

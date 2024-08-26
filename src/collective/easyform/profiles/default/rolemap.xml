@@ -1,5 +1,8 @@
 <?xml version="1.0"?>
 <rolemap>
+  <roles>
+    <role name="Data manager"/>
+  </roles>
   <permissions>
     <permission acquire="True"
                 name="collective.easyform: Add Content"
@@ -69,6 +72,8 @@
       <role name="Manager" />
       <role name="Owner" />
       <role name="Site Administrator" />
+      <role name="Manager" />
+      <role name="Data manager" />
     </permission>
   </permissions>
 </rolemap>
