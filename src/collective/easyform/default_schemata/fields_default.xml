@@ -25,5 +25,10 @@
       <description />
       <title i18n:translate="">Comments</title>
     </field>
+    <field name="captcha" type="collective.easyform.fields.ReCaptcha">
+      <description/>
+      <required>False</required>
+      <title>captcha</title>
+    </field>
   </schema>
 </model>
